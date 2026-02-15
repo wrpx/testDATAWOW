@@ -142,11 +142,11 @@ export function DeleteAlertIcon({ className, ...props }: IconProps) {
       className={`${base} ${className ?? ""}`}
       {...props}
     >
-      <circle cx="12" cy="12" r="11" fill="currentColor" />
+      <circle cx="12" cy="12" r="12" fill="currentColor" />
       <path
-        d="m8.2 8.2 7.6 7.6M15.8 8.2l-7.6 7.6"
+        d="m8.6 8.6 6.8 6.8M15.4 8.6l-6.8 6.8"
         stroke="#fff"
-        strokeWidth="2.4"
+        strokeWidth="2.2"
         strokeLinecap="round"
       />
     </svg>

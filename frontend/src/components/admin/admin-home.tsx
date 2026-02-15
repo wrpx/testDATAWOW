@@ -193,11 +193,13 @@ export function AdminHome() {
       {deleteTarget && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/35 px-4">
           <div className="w-full max-w-[540px] rounded-lg bg-white p-8 text-center shadow-panel">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center text-[#EC4959]">
-              <DeleteAlertIcon className="h-12 w-12" />
+            <div className="mx-auto mb-4 flex h-[48px] w-[48px] items-center justify-center text-[#E63946]">
+              <DeleteAlertIcon className="h-[48px] w-[48px]" />
             </div>
             <p className="text-2xl font-semibold text-app-text">Are you sure to delete?</p>
-            <p className="mt-2 text-xl font-semibold text-app-text">"{deleteTarget.name}"</p>
+            <p className="mt-2 text-xl font-semibold text-app-text">
+              &quot;{deleteTarget.name}&quot;
+            </p>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
