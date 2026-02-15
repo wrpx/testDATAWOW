@@ -1,45 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
-import { ApiReservationHistory, ReservationHistory } from "@/lib/types";
-
-function formatDateTime(value: string): string {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  const date = parsed.toLocaleDateString("en-GB");
-  const time = parsed.toLocaleTimeString("en-GB", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-
-  return `${date} ${time}`;
-}
+import { useAdminHistoryQuery } from "@/hooks/admin/useAdminHistoryQuery";
 
 export function AdminHistoryTable() {
-  const historyQuery = useQuery({
-    queryKey: queryKeys.adminHistory,
-    queryFn: () =>
-      apiRequest<ApiReservationHistory[]>({
-        path: "/admin/reservations/history"
-      }),
-    staleTime: 10_000,
-    select: (payload): ReservationHistory[] =>
-      payload.map((item) => ({
-        id: item.id,
-        dateTime: formatDateTime(item.timestamp),
-        username: item.username,
-        concertName: item.concertName,
-        action: item.action
-      }))
-  });
-
-  const history = historyQuery.data ?? [];
-  const errorMessage = historyQuery.error instanceof Error ? historyQuery.error.message : null;
+  const { history, isLoading, errorMessage } = useAdminHistoryQuery();
 
   return (
     <section className="overflow-hidden rounded-lg border border-[#8A8A8A] bg-white">
@@ -54,28 +18,28 @@ export function AdminHistoryTable() {
             </tr>
           </thead>
           <tbody>
-            {historyQuery.isLoading && (
+            {isLoading && (
               <tr>
                 <td className="history-cell" colSpan={4}>
                   Loading history...
                 </td>
               </tr>
             )}
-            {!historyQuery.isLoading && errorMessage && (
+            {!isLoading && errorMessage && (
               <tr>
                 <td className="history-cell text-app-danger" colSpan={4}>
                   {errorMessage}
                 </td>
               </tr>
             )}
-            {!historyQuery.isLoading && !errorMessage && history.length === 0 && (
+            {!isLoading && !errorMessage && history.length === 0 && (
               <tr>
                 <td className="history-cell" colSpan={4}>
                   No reservation history yet
                 </td>
               </tr>
             )}
-            {!historyQuery.isLoading &&
+            {!isLoading &&
               !errorMessage &&
               history.map((record) => (
                 <tr key={record.id}>

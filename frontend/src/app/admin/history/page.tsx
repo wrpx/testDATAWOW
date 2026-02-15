@@ -1,6 +1,6 @@
-import { AdminHistoryTable } from "@/components/admin/admin-history-table";
+import { AdminHistoryTable } from "@/components/admin/adminHistoryTable";
 import { HistoryIcon, HomeIcon } from "@/components/common/icons";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppShell } from "@/components/layout/appShell";
 import { NavItem } from "@/lib/types";
 
 const navItems: NavItem[] = [

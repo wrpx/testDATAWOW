@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
-import { AppProviders } from "@/components/providers/app-providers";
+import { AppProviders } from "@/components/providers/appProviders";
 
 export const metadata: Metadata = {
   title: "Concert Reservation",

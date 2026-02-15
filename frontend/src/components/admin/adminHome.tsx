@@ -1,8 +1,7 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { ConcertCard } from "@/components/common/concert-card";
+import { useState } from "react";
+import { ConcertCard } from "@/components/common/concertCard";
 import {
   BadgeIcon,
   CircleXIcon,
@@ -11,113 +10,55 @@ import {
   TrashIcon,
   UserIcon
 } from "@/components/common/icons";
-import { StatCard } from "@/components/common/stat-card";
+import { StatCard } from "@/components/common/statCard";
 import { Toast } from "@/components/common/toast";
-import { apiRequest } from "@/lib/api-client";
-import { queryKeys } from "@/lib/query-keys";
-import { AdminSummary, ApiSuccessResponse, Concert } from "@/lib/types";
+import { useAdminConcertActions } from "@/hooks/admin/useAdminConcertActions";
+import {
+  AdminCreateConcertFormValues,
+  useAdminCreateConcertForm
+} from "@/hooks/admin/useAdminCreateConcertForm";
+import { useAdminDashboardData } from "@/hooks/admin/useAdminDashboardData";
+import { useTimedToast } from "@/hooks/useTimedToast";
+import { Concert } from "@/lib/types";
 
 type AdminTab = "overview" | "create";
 
-type ToastState = {
-  message: string;
-  tone: "success" | "error";
-};
-
-type CreateConcertPayload = {
-  name: string;
-  description: string;
-  totalSeats: number;
-};
-
-const initialForm = {
-  name: "",
-  description: "",
-  totalSeats: "500"
-};
-
-const initialSummary: AdminSummary = {
-  totalSeats: 0,
-  reserveCount: 0,
-  cancelCount: 0
-};
-
 export function AdminHome() {
-  const queryClient = useQueryClient();
-
   const [tab, setTab] = useState<AdminTab>("overview");
   const [deleteTarget, setDeleteTarget] = useState<Concert | null>(null);
-  const [toast, setToast] = useState<ToastState | null>(null);
-  const [form, setForm] = useState(initialForm);
-  const [formError, setFormError] = useState<string | null>(null);
-  const toastTimeoutRef = useRef<number | null>(null);
 
-  const showToast = (message: string, tone: ToastState["tone"] = "success") => {
-    setToast({ message, tone });
+  const { toast, showToast } = useTimedToast(2400);
+  const { concerts, summary, isLoading, pageErrorMessage } = useAdminDashboardData();
+  const { createConcertMutation, deleteConcertMutation, refreshAdminData } = useAdminConcertActions();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setServerError,
+    clearServerError
+  } = useAdminCreateConcertForm();
 
-    if (toastTimeoutRef.current) {
-      window.clearTimeout(toastTimeoutRef.current);
+  const onSubmitCreateConcert = handleSubmit(async (values: AdminCreateConcertFormValues) => {
+    clearServerError();
+
+    try {
+      await createConcertMutation.mutateAsync({
+        name: values.name.trim(),
+        description: values.description.trim(),
+        totalSeats: values.totalSeats
+      });
+
+      reset();
+      setTab("overview");
+      await refreshAdminData();
+      showToast("Create successfully", "success");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Create failed";
+      setServerError(message);
+      showToast(message, "error");
     }
-
-    toastTimeoutRef.current = window.setTimeout(() => setToast(null), 2400);
-  };
-
-  const concertsQuery = useQuery({
-    queryKey: queryKeys.concerts,
-    queryFn: () => apiRequest<Concert[]>({ path: "/concerts" }),
-    staleTime: 10_000
   });
-
-  const summaryQuery = useQuery({
-    queryKey: queryKeys.adminSummary,
-    queryFn: () => apiRequest<AdminSummary>({ path: "/admin/summary" }),
-    staleTime: 10_000
-  });
-
-  const createConcertMutation = useMutation({
-    mutationFn: (payload: CreateConcertPayload) =>
-      apiRequest<Concert>({
-        path: "/admin/concerts",
-        method: "POST",
-        body: JSON.stringify(payload)
-      })
-  });
-
-  const deleteConcertMutation = useMutation({
-    mutationFn: (concertId: string) =>
-      apiRequest<ApiSuccessResponse>({
-        path: `/admin/concerts/${concertId}`,
-        method: "DELETE"
-      })
-  });
-
-  const refreshAdminData = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.concerts }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.adminSummary })
-    ]);
-  };
-
-  const isLoading = concertsQuery.isLoading || summaryQuery.isLoading;
-  const pageError = concertsQuery.error ?? summaryQuery.error;
-  const pageErrorMessage = pageError instanceof Error ? pageError.message : null;
-  const concerts = concertsQuery.data ?? [];
-  const summary = summaryQuery.data ?? initialSummary;
-
-  useEffect(() => {
-    if (pageErrorMessage) {
-      showToast(pageErrorMessage, "error");
-    }
-  }, [pageErrorMessage]);
-
-  useEffect(
-    () => () => {
-      if (toastTimeoutRef.current) {
-        window.clearTimeout(toastTimeoutRef.current);
-      }
-    },
-    []
-  );
 
   const onConfirmDelete = async () => {
     if (!deleteTarget) return;
@@ -129,37 +70,6 @@ export function AdminHome() {
       showToast(result.message ?? "Delete successfully", "success");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Delete failed";
-      showToast(message, "error");
-    }
-  };
-
-  const onSaveConcert = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const parsedTotalSeats = Number(form.totalSeats);
-    const isValidSeats = Number.isInteger(parsedTotalSeats) && parsedTotalSeats > 0;
-
-    if (!form.name.trim() || !form.description.trim() || !isValidSeats) {
-      setFormError("Please complete all fields with valid values");
-      return;
-    }
-
-    setFormError(null);
-
-    try {
-      await createConcertMutation.mutateAsync({
-        name: form.name.trim(),
-        description: form.description.trim(),
-        totalSeats: parsedTotalSeats
-      });
-
-      setForm(initialForm);
-      setTab("overview");
-      await refreshAdminData();
-      showToast("Create successfully", "success");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Create failed";
-      setFormError(message);
       showToast(message, "error");
     }
   };
@@ -227,7 +137,7 @@ export function AdminHome() {
         </div>
       ) : (
         <form
-          onSubmit={onSaveConcert}
+          onSubmit={onSubmitCreateConcert}
           className="mt-6 rounded-lg border border-app-border bg-transparent p-5 sm:p-6 lg:p-8"
         >
           <h3 className="text-4xl font-semibold text-app-primary sm:text-5xl">Create</h3>
@@ -236,11 +146,14 @@ export function AdminHome() {
             <label className="text-lg text-app-text">
               <span className="mb-2 block">Concert Name</span>
               <input
-                value={form.name}
-                onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                {...register("name", {
+                  required: "Please input concert name",
+                  validate: (value) => value.trim().length > 0 || "Please input concert name"
+                })}
                 className="w-full rounded border border-[#A7A7A7] bg-white px-4 py-3 text-base outline-none focus:border-app-primary"
                 placeholder="Please input concert name"
               />
+              {errors.name && <p className="mt-2 text-base text-app-danger">{errors.name.message}</p>}
             </label>
             <label className="text-lg text-app-text">
               <span className="mb-2 block">Total of seat</span>
@@ -248,37 +161,43 @@ export function AdminHome() {
                 <input
                   type="number"
                   min={1}
-                  value={form.totalSeats}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      totalSeats: event.target.value
-                    }))
-                  }
+                  {...register("totalSeats", {
+                    required: "Please input total seat",
+                    valueAsNumber: true,
+                    min: {
+                      value: 1,
+                      message: "Total seat must be greater than 0"
+                    }
+                  })}
                   className="w-full rounded border border-[#A7A7A7] bg-white px-4 py-3 pr-11 text-base outline-none focus:border-app-primary"
                 />
                 <UserIcon className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-app-text/70" />
               </div>
+              {errors.totalSeats && (
+                <p className="mt-2 text-base text-app-danger">{errors.totalSeats.message}</p>
+              )}
             </label>
           </div>
 
           <label className="mt-6 block text-lg text-app-text">
             <span className="mb-2 block">Description</span>
             <textarea
-              value={form.description}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  description: event.target.value
-                }))
-              }
+              {...register("description", {
+                required: "Please input description",
+                validate: (value) => value.trim().length > 0 || "Please input description"
+              })}
               rows={4}
               className="w-full rounded border border-[#A7A7A7] bg-white px-4 py-3 text-base outline-none focus:border-app-primary"
               placeholder="Please input description"
             />
+            {errors.description && (
+              <p className="mt-2 text-base text-app-danger">{errors.description.message}</p>
+            )}
           </label>
 
-          {formError && <p className="mt-4 text-base font-medium text-app-danger">{formError}</p>}
+          {errors.root?.serverError?.message && (
+            <p className="mt-4 text-base font-medium text-app-danger">{errors.root.serverError.message}</p>
+          )}
 
           <div className="mt-6 flex justify-end">
             <button

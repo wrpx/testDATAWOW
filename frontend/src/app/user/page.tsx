@@ -1,5 +1,5 @@
-import { AppShell } from "@/components/layout/app-shell";
-import { UserHome } from "@/components/user/user-home";
+import { AppShell } from "@/components/layout/appShell";
+import { UserHome } from "@/components/user/userHome";
 import { NavItem } from "@/lib/types";
 
 const navItems: NavItem[] = [];
