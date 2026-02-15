@@ -38,15 +38,16 @@ export function Sidebar({ roleTitle, navItems, activeHref, switchHref, switchLab
               </li>
             );
           })}
+          <li>
+            <Link
+              href={switchHref}
+              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-lg font-medium text-app-text hover:bg-slate-100 hover:text-app-primary sm:text-xl"
+            >
+              <SwitchIcon className="h-7 w-7" />
+              <span>{switchLabel}</span>
+            </Link>
+          </li>
         </ul>
-
-        <Link
-          href={switchHref}
-          className="mt-6 flex items-center gap-3 px-3 py-2.5 text-lg font-medium text-app-text hover:text-app-primary sm:text-xl"
-        >
-          <SwitchIcon className="h-7 w-7" />
-          <span>{switchLabel}</span>
-        </Link>
       </nav>
 
       <div className="p-4 md:p-6">

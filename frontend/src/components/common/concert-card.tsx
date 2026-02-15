@@ -7,6 +7,7 @@ type ConcertCardProps = {
   actionLabel: string;
   actionTone: "primary" | "danger";
   actionIcon?: ReactNode;
+  actionDisabled?: boolean;
   onAction: (concertId: string) => void;
 };
 
@@ -20,6 +21,7 @@ export function ConcertCard({
   actionLabel,
   actionTone,
   actionIcon,
+  actionDisabled = false,
   onAction
 }: ConcertCardProps) {
   return (
@@ -34,8 +36,9 @@ export function ConcertCard({
         </p>
         <button
           type="button"
+          disabled={actionDisabled}
           onClick={() => onAction(concert.id)}
-          className={`inline-flex min-w-32 items-center justify-center gap-2 rounded-md px-5 py-2.5 text-lg font-semibold text-white ${actionToneMap[actionTone]}`}
+          className={`inline-flex min-w-32 items-center justify-center gap-2 rounded-md px-5 py-2.5 text-lg font-semibold text-white disabled:cursor-not-allowed disabled:opacity-70 ${actionToneMap[actionTone]}`}
         >
           {actionIcon}
           {actionLabel}

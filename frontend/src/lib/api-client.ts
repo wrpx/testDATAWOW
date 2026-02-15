@@ -12,12 +12,15 @@ export async function apiRequest<T>({ path, ...options }: RequestOptions): Promi
       ...(options.headers ?? {})
     }
   });
+  const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    const message = payload?.message ?? "Request failed";
+    const message =
+      payload?.errors?.[0] ??
+      (Array.isArray(payload?.message) ? payload.message[0] : payload?.message) ??
+      "Request failed";
     throw new Error(message);
   }
 
-  return response.json() as Promise<T>;
+  return payload as T;
 }

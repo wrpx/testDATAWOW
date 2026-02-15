@@ -14,6 +14,8 @@ export type Concert = {
   description: string;
   totalSeats: number;
   reservedSeats: number;
+  remainingSeats?: number;
+  soldOut?: boolean;
   isReservedByUser?: boolean;
 };
 
@@ -23,4 +25,25 @@ export type ReservationHistory = {
   username: string;
   concertName: string;
   action: "Reserve" | "Cancel";
+};
+
+export type ApiReservationHistory = {
+  id: string;
+  userId: string;
+  username: string;
+  concertId: string;
+  concertName: string;
+  action: "Reserve" | "Cancel";
+  timestamp: string;
+};
+
+export type AdminSummary = {
+  totalSeats: number;
+  reserveCount: number;
+  cancelCount: number;
+};
+
+export type ApiSuccessResponse = {
+  success: boolean;
+  message: string;
 };
