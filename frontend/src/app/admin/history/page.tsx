@@ -11,7 +11,6 @@ const navItems: NavItem[] = [
 export default function AdminHistoryPage() {
   return (
     <AppShell
-      pageTitle="Admin - History"
       roleTitle="Admin"
       navItems={navItems}
       activeHref="/admin/history"

@@ -7,7 +7,6 @@ const navItems: NavItem[] = [];
 export default function UserPage() {
   return (
     <AppShell
-      pageTitle="User"
       roleTitle="User"
       navItems={navItems}
       activeHref="/user"

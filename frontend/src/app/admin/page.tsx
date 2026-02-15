@@ -11,7 +11,6 @@ const navItems: NavItem[] = [
 export default function AdminPage() {
   return (
     <AppShell
-      pageTitle="Admin - Home"
       roleTitle="Admin"
       navItems={navItems}
       activeHref="/admin"
