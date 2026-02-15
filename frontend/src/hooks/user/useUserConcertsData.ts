@@ -6,6 +6,22 @@ import { fetchConcerts } from "@/api/concerts";
 import { fetchUserReservationHistory } from "@/api/user";
 import { APP_USER_ID } from "@/lib/config";
 import { queryKeys } from "@/lib/queryKeys";
+import { ReservationHistory } from "@/lib/types";
+
+function formatDateTime(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  const date = parsed.toLocaleDateString("en-GB");
+  const time = parsed.toLocaleTimeString("en-GB", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+
+  return `${date} ${time}`;
+}
 
 export function useUserConcertsData() {
   const concertsQuery = useQuery({
@@ -20,7 +36,7 @@ export function useUserConcertsData() {
     staleTime: 10_000
   });
 
-  const concerts = useMemo(() => {
+  const { concerts, userHistory } = useMemo(() => {
     const concertPayload = concertsQuery.data ?? [];
     const historyPayload = historyQuery.data ?? [];
 
@@ -35,10 +51,23 @@ export function useUserConcertsData() {
       }
     }
 
-    return concertPayload.map((concert) => ({
+    const normalizedConcerts = concertPayload.map((concert) => ({
       ...concert,
       isReservedByUser: latestActionByConcert.get(concert.id) === "Reserve"
     }));
+
+    const normalizedHistory: ReservationHistory[] = sortedHistory.map((item) => ({
+      id: item.id,
+      dateTime: formatDateTime(item.timestamp),
+      username: item.username,
+      concertName: item.concertName,
+      action: item.action
+    }));
+
+    return {
+      concerts: normalizedConcerts,
+      userHistory: normalizedHistory
+    };
   }, [concertsQuery.data, historyQuery.data]);
 
   const isLoading = concertsQuery.isLoading || historyQuery.isLoading;
@@ -46,6 +75,7 @@ export function useUserConcertsData() {
 
   return {
     concerts,
+    userHistory,
     isLoading,
     errorMessage: queryError instanceof Error ? queryError.message : null
   };

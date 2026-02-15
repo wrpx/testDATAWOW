@@ -51,13 +51,13 @@ export function Sidebar({ roleTitle, navItems, activeHref, switchHref, switchLab
       </nav>
 
       <div className="p-4 md:p-6">
-        <button
-          type="button"
+        <Link
+          href="/"
           className="flex items-center gap-3 text-lg font-medium text-app-text hover:text-app-danger sm:text-xl"
         >
           <LogoutIcon className="h-7 w-7" />
           <span>Logout</span>
-        </button>
+        </Link>
       </div>
     </aside>
   );
