@@ -2,6 +2,14 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { ConcertCard } from "@/components/common/concert-card";
+import {
+  BadgeIcon,
+  CircleXIcon,
+  DeleteAlertIcon,
+  SaveIcon,
+  TrashIcon,
+  UserIcon
+} from "@/components/common/icons";
 import { StatCard } from "@/components/common/stat-card";
 import { Toast } from "@/components/common/toast";
 import { adminConcertsMock } from "@/lib/mock-data";
@@ -12,7 +20,7 @@ type AdminTab = "overview" | "create";
 const initialForm = {
   name: "",
   description: "",
-  totalSeats: 500
+  totalSeats: "500"
 };
 
 export function AdminHome() {
@@ -47,13 +55,15 @@ export function AdminHome() {
 
   const onSaveConcert = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!form.name.trim() || !form.description.trim() || form.totalSeats < 1) return;
+    const parsedTotalSeats = Number(form.totalSeats);
+    const isValidSeats = Number.isInteger(parsedTotalSeats) && parsedTotalSeats > 0;
+    if (!form.name.trim() || !form.description.trim() || !isValidSeats) return;
 
     const newConcert: Concert = {
       id: `concert-${Date.now()}`,
       name: form.name.trim(),
       description: form.description.trim(),
-      totalSeats: form.totalSeats,
+      totalSeats: parsedTotalSeats,
       reservedSeats: 0
     };
 
@@ -68,9 +78,24 @@ export function AdminHome() {
       {toastMessage && <Toast message={toastMessage} />}
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <StatCard title="Total of seats" value={totalSeats} tone="info" icon="◔" />
-        <StatCard title="Reserve" value={reserved} tone="success" icon="◉" />
-        <StatCard title="Cancel" value={canceled} tone="danger" icon="⊗" />
+        <StatCard
+          title="Total of seats"
+          value={totalSeats}
+          tone="info"
+          icon={<UserIcon className="h-8 w-8" />}
+        />
+        <StatCard
+          title="Reserve"
+          value={reserved}
+          tone="success"
+          icon={<BadgeIcon className="h-8 w-8" />}
+        />
+        <StatCard
+          title="Cancel"
+          value={canceled}
+          tone="danger"
+          icon={<CircleXIcon className="h-8 w-8" />}
+        />
       </div>
 
       <div className="mt-8 flex gap-8 border-b border-app-border">
@@ -98,6 +123,7 @@ export function AdminHome() {
               concert={concert}
               actionLabel="Delete"
               actionTone="danger"
+              actionIcon={<TrashIcon className="h-5 w-5" />}
               onAction={() => setDeleteTarget(concert)}
             />
           ))}
@@ -118,18 +144,21 @@ export function AdminHome() {
             </label>
             <label className="text-lg text-app-text">
               <span className="mb-2 block">Total of seat</span>
-              <input
-                type="number"
-                min={1}
-                value={form.totalSeats}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    totalSeats: Number(event.target.value) || 0
-                  }))
-                }
-                className="w-full rounded border border-[#A7A7A7] bg-white px-4 py-3 text-base outline-none focus:border-app-primary"
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  min={1}
+                  value={form.totalSeats}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      totalSeats: event.target.value
+                    }))
+                  }
+                  className="w-full rounded border border-[#A7A7A7] bg-white px-4 py-3 pr-11 text-base outline-none focus:border-app-primary"
+                />
+                <UserIcon className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-app-text/70" />
+              </div>
             </label>
           </div>
 
@@ -150,7 +179,11 @@ export function AdminHome() {
           </label>
 
           <div className="mt-6 flex justify-end">
-            <button type="submit" className="rounded bg-app-primary px-10 py-2.5 text-lg font-semibold text-white">
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded bg-app-primary px-10 py-2.5 text-lg font-semibold text-white"
+            >
+              <SaveIcon className="h-5 w-5" />
               Save
             </button>
           </div>
@@ -160,8 +193,8 @@ export function AdminHome() {
       {deleteTarget && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/35 px-4">
           <div className="w-full max-w-[540px] rounded-lg bg-white p-8 text-center shadow-panel">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-app-danger text-3xl text-white">
-              ×
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center text-[#EC4959]">
+              <DeleteAlertIcon className="h-12 w-12" />
             </div>
             <p className="text-2xl font-semibold text-app-text">Are you sure to delete?</p>
             <p className="mt-2 text-xl font-semibold text-app-text">"{deleteTarget.name}"</p>

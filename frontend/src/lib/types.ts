@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
+
 export type Role = "admin" | "user";
 
 export type NavItem = {
   label: string;
   href: string;
-  icon: string;
+  icon: ReactNode;
 };
 
 export type Concert = {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoutIcon, SwitchIcon } from "@/components/common/icons";
 import { NavItem } from "@/lib/types";
 
 type SidebarProps = {
@@ -29,7 +30,9 @@ export function Sidebar({ roleTitle, navItems, activeHref, switchHref, switchLab
                     isActive ? "bg-app-navActive" : "hover:bg-slate-100"
                   }`}
                 >
-                  <span className="w-5 text-base leading-none">{item.icon}</span>
+                  <span className="flex h-7 w-7 items-center justify-center text-app-text">
+                    {item.icon}
+                  </span>
                   <span className="text-[1em]">{item.label}</span>
                 </Link>
               </li>
@@ -41,7 +44,7 @@ export function Sidebar({ roleTitle, navItems, activeHref, switchHref, switchLab
           href={switchHref}
           className="mt-6 flex items-center gap-3 px-3 py-2.5 text-lg font-medium text-app-text hover:text-app-primary sm:text-xl"
         >
-          <span className="w-5 text-base leading-none">↺</span>
+          <SwitchIcon className="h-7 w-7" />
           <span>{switchLabel}</span>
         </Link>
       </nav>
@@ -51,7 +54,7 @@ export function Sidebar({ roleTitle, navItems, activeHref, switchHref, switchLab
           type="button"
           className="flex items-center gap-3 text-lg font-medium text-app-text hover:text-app-danger sm:text-xl"
         >
-          <span className="w-5 text-base leading-none">⇥</span>
+          <LogoutIcon className="h-7 w-7" />
           <span>Logout</span>
         </button>
       </div>
